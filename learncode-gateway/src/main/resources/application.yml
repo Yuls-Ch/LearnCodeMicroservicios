@@ -1,0 +1,119 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+
+  cloud:
+    gateway:
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+      routes:
+
+        # =========================
+        # AUTH SERVICE
+        # =========================
+        - id: auth
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/auth/**
+
+        - id: admin-home
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/admin/dashboard
+
+        - id: admin-client
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/admin/gestionCliente/**
+
+
+        # =========================
+        # SUBSCRIPTION SERVICE
+        # =========================
+        - id: admin-subscription
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/admin/gestionSuscripcion/**
+
+        - id: plans
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/plans/**
+
+        - id: subscription
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/subscription/**
+
+        - id: stripe
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/stripe/**
+
+        - id: payments
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/payments/**
+
+        # ✅ SOAP
+        - id: soap-subscription
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/ws/**
+
+
+        # =========================
+        # CATALOG SERVICE
+        # =========================
+        - id: catalog
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/catalog/**
+
+        - id: admin-courses
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/admin/courses/**
+
+        - id: admin-content
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/admin/content/**
+
+        - id: client-content
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/client/content/**
+
+        - id: courses-client
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/courses/**
+
+        - id: admin-upload
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/admin/upload/**
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

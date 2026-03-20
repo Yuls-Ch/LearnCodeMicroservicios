@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://learncode.com/soap/payments"
+           xmlns:tns="http://learncode.com/soap/payments"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="payment">
+        <xs:sequence>
+        <xs:element name="email" type="xs:string" minOccurs="0"/>
+        <xs:element name="foto" type="xs:string" minOccurs="0"/>
+        <xs:element name="plan" type="xs:string"/>
+        <xs:element name="monto" type="xs:decimal"/>
+        <xs:element name="estado" type="xs:string"/>
+        
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="getPaymentsRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" minOccurs="0"/>
+                <xs:element name="userId" type="xs:int" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getPaymentsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="message" type="xs:string"/>
+                <xs:element name="payments"
+                            type="tns:payment"
+                            maxOccurs="unbounded"
+                            minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
