@@ -111,7 +111,14 @@ spring:
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/api/admin/upload/**
-
+      
+        # ======================== 
+        # CHATBOT 
+        # ========================
+        - id: chatbot 
+          uri: lb://CATALOG-SERVICE
+          predicates:  
+            - Path=/api/chatbot/**
 
 eureka:
   client:

@@ -35,3 +35,7 @@ cloudinary:
   cloud-name: dq3ut13kr
   api-key: "449415717531214"
   api-secret: "_7AoYNN1ufdyI2KYE8jhZ85K67w"
+
+n8n:
+  webhook:
+    url: https://yulianachambi.app.n8n.cloud/webhook/ChatBot
