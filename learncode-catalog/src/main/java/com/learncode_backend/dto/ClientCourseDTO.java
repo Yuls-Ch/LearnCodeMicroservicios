@@ -8,7 +8,7 @@ public record ClientCourseDTO(
      String subtitle,
      String iconUrl,
      String coverUrl,
-     boolean isFree,
+     boolean free,
      String requiredPlanCode,
      
      Long modulesCount, 

@@ -143,7 +143,7 @@ public class Course {
 		this.requiredPlanCode = requiredPlanCode;
 	}
 
-	public boolean isPublished() {
+	public boolean getPublished() {
 		return published;
 	}
 
