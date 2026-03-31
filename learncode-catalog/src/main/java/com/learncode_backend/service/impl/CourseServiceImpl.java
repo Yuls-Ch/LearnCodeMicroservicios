@@ -49,7 +49,7 @@ public class CourseServiceImpl
         existing.setCoverUrl(course.getCoverUrl());
         existing.setFree(course.getFree());
         existing.setRequiredPlanCode(course.getRequiredPlanCode());
-        existing.setPublished(course.isPublished());
+        existing.setPublished(course.getPublished());
 
         System.out.println(course);
         

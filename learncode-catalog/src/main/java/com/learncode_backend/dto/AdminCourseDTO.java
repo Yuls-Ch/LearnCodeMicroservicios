@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -30,12 +29,10 @@ public class AdminCourseDTO {
 	@NotBlank(message = "El color cover es obligatorio")
 	private String coverUrl;
 
-	@JsonProperty("free")
-	private boolean isFree;
+	private boolean free;
 
 	private String requiredPlanCode;
 
-	@JsonProperty("isPublished")
 	private boolean published;
 
 	private LocalDateTime createdAt;
@@ -48,7 +45,7 @@ public class AdminCourseDTO {
 			@NotBlank(message = "El subtítulo es obligatorio") @Size(min = 5, max = 150, message = "El subtítulo debe tener mínimo 5 caracteres") String subtitle,
 			@NotBlank(message = "La descripción es obligatoria") @Size(min = 20, message = "La descripción debe tener mínimo 20 caracteres") String description,
 			@NotBlank(message = "El icono del curso es obligatorio") String iconUrl,
-			@NotBlank(message = "El color cover es obligatorio") String coverUrl, boolean isFree,
+			@NotBlank(message = "El color cover es obligatorio") String coverUrl, boolean free,
 			String requiredPlanCode, boolean published, LocalDateTime createdAt) {
 		super();
 		this.id = id;
@@ -57,7 +54,7 @@ public class AdminCourseDTO {
 		this.description = description;
 		this.iconUrl = iconUrl;
 		this.coverUrl = coverUrl;
-		this.isFree = isFree;
+		this.free = free;
 		this.requiredPlanCode = requiredPlanCode;
 		this.published = published;
 		this.createdAt = createdAt;
@@ -81,13 +78,13 @@ public class AdminCourseDTO {
 	public String getCoverUrl() { return coverUrl; }
 	public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
 
-	public boolean isFree() { return isFree; }
-	public void setFree(boolean isFree) { this.isFree = isFree; }
+	public boolean getFree() { return free; }
+	public void setFree(boolean free) { this.free = free; }
 
 	public String getRequiredPlanCode() { return requiredPlanCode; }
 	public void setRequiredPlanCode(String requiredPlanCode) { this.requiredPlanCode = requiredPlanCode; }
 
-	public boolean isPublished() { return published; }
+	public boolean getPublished() { return published; }
 	public void setPublished(boolean published) { this.published = published; }
 
 	public LocalDateTime getCreatedAt() { return createdAt; }
@@ -95,7 +92,7 @@ public class AdminCourseDTO {
 	
 	@AssertTrue(message = "Si el curso no es gratis, debe seleccionar un plan")
 	public boolean isPlanValid() {
-		if (!isFree) {
+		if (!free) {
 			return requiredPlanCode != null && requiredPlanCode.matches("ORO|PLATINO|DIAMANTE");
 		}
 		return true;
@@ -103,7 +100,7 @@ public class AdminCourseDTO {
 
 	@AssertTrue(message = "Un curso gratis no debe tener plan requerido")
 	public boolean isFreeCourseValid() {
-		if (isFree) {
+		if (free) {
 			return requiredPlanCode == null || requiredPlanCode.isBlank() || requiredPlanCode.equals("FREE");
 		}
 		return true;
