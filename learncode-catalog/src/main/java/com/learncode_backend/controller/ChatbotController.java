@@ -31,7 +31,9 @@ public class ChatbotController {
         System.out.println("Message: " + request.chatInput());
         
         return chatbotService.sendMessage(request.chatInput())
-                .map(ResponseEntity::ok)
+                .map(response -> {
+        			return ResponseEntity.ok(response);
+                })
                 .doOnError(e -> System.err.println("Error en controller: " + e.getMessage()))
                 .onErrorReturn(ResponseEntity.internalServerError().build());
     }
