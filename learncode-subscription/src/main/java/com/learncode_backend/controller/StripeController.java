@@ -42,7 +42,7 @@ public class StripeController {
         SessionCreateParams params =
             SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl("http://localhost:4200/client/home?success=true")
+                .setSuccessUrl("http://localhost:4200/client/plans?success=true")
                 .setCancelUrl("http://localhost:4200/client/plans?canceled=true")
                 .putMetadata("userId", userId.toString())
                 .putMetadata("planCode", planCode)
