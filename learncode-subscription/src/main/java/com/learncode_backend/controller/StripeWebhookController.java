@@ -1,12 +1,13 @@
 package com.learncode_backend.controller;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,8 @@ import com.nimbusds.jose.shaded.gson.JsonParser;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/stripe")
@@ -39,24 +42,22 @@ public class StripeWebhookController {
     ) {
         this.subService = subService;
         this.eventRepo = eventRepo;
-		this.paymentService = paymentService;
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
-        @RequestBody String payload,
+        HttpServletRequest request,
         @RequestHeader("Stripe-Signature") String sig
     ) {
-
         try {
 
-            Event event = Webhook.constructEvent(
-                payload,
-                sig,
-                webhookSecret
-            );
+            InputStream is = request.getInputStream();
+            byte[] bodyBytes = is.readAllBytes();
+            String payload = new String(bodyBytes, StandardCharsets.UTF_8);
 
-            // Anti duplicado
+            Event event = Webhook.constructEvent(payload, sig, webhookSecret);
+
             if (eventRepo.existsById(event.getId())) {
                 return ResponseEntity.ok("Duplicado");
             }
@@ -67,9 +68,7 @@ public class StripeWebhookController {
 
             System.out.println("EVENTO: " + event.getType());
 
-            /* ===============================
-               1️⃣ PRIMER PAGO
-            =============================== */
+            /* 1️° PRIMER PAGO*/
             if ("checkout.session.completed".equals(event.getType())) {
 
                 Session session = getSessionSafe(event, payload);
@@ -78,33 +77,26 @@ public class StripeWebhookController {
                 String planCode = session.getMetadata().get("planCode");
 
                 if (userId == null || planCode == null) {
-                    System.out.println("⚠️ Metadata vacía");
+                    System.out.println("Metadata vacía");
                     return ResponseEntity.ok("No metadata");
                 }
 
-                // Activar plan
-                subService.activatePlanSafe(
-                    UUID.fromString(userId),
-                    planCode
+                subService.activatePlanSafe(UUID.fromString(userId), planCode);
+
+                paymentService.registerPayment(
+                    userId,
+                    planCode,
+                    session.getAmountTotal().intValue(),
+                    session.getCurrency(),
+                    null,
+                    session.getId(),
+                    session.getCreated()
                 );
 
-	                // Guardar primer pago
-	                paymentService.registerPayment(
-	                    userId,
-	                    planCode,
-	                    session.getAmountTotal().intValue(),
-	                    session.getCurrency(),
-	                    null,
-	                    session.getId(),
-	                    session.getCreated()
-	                );
-
-                System.out.println("✅ PRIMER PAGO OK");
+                System.out.println("PRIMER PAGO OK");
             }
 
-            /* ===============================
-               2️⃣ RENOVACIONES
-            =============================== */
+            /* 2️° RENOVACIONES */
             if ("invoice.payment_succeeded".equals(event.getType())) {
 
                 JsonObject json = JsonParser.parseString(payload)
@@ -116,13 +108,11 @@ public class StripeWebhookController {
 
                 if (!invoice.has("subscription")
                     || invoice.get("subscription").isJsonNull()) {
-
-                    System.out.println("⚠️ Invoice sin subscription");
+                    System.out.println("Invoice sin subscription");
                     return ResponseEntity.ok("No subscription");
                 }
 
-                String subscriptionId =
-                    invoice.get("subscription").getAsString();
+                String subscriptionId = invoice.get("subscription").getAsString();
 
                 Session session = Session.list(
                     Map.of("subscription", subscriptionId)
@@ -132,12 +122,9 @@ public class StripeWebhookController {
                 String planCode = session.getMetadata().get("planCode");
 
                 String paymentIntent = null;
-
                 if (invoice.has("payment_intent")
                     && !invoice.get("payment_intent").isJsonNull()) {
-
-                    paymentIntent =
-                        invoice.get("payment_intent").getAsString();
+                    paymentIntent = invoice.get("payment_intent").getAsString();
                 }
 
                 paymentService.registerPayment(
@@ -150,41 +137,31 @@ public class StripeWebhookController {
                     invoice.get("created").getAsLong()
                 );
 
-                System.out.println("💰 RENOVACIÓN OK");
+                System.out.println("RENOVACIÓN OK");
             }
 
             return ResponseEntity.ok("OK");
 
         } catch (Exception e) {
-
-            System.err.println("❌ ERROR WEBHOOK:");
+            System.err.println("ERROR WEBHOOK:");
             e.printStackTrace();
-
-            return ResponseEntity.ok("Handled"); // 👈 NUNCA 400
+            return ResponseEntity.ok("Handled");
         }
     }
 
-    private Session getSessionSafe(Event event, String payload)
-    	    throws Exception {
+    private Session getSessionSafe(Event event, String payload) throws Exception {
+        var obj = event.getDataObjectDeserializer().getObject();
+        if (obj.isPresent()) {
+            return (Session) obj.get();
+        }
 
-    	    var obj = event.getDataObjectDeserializer().getObject();
+        JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
+        String sessionId = json
+            .getAsJsonObject("data")
+            .getAsJsonObject("object")
+            .get("id")
+            .getAsString();
 
-    	    if (obj.isPresent()) {
-    	        return (Session) obj.get();
-    	    }
-
-    	    // Fallback JSON
-    	    JsonObject json = JsonParser.parseString(payload)
-    	        .getAsJsonObject();
-
-    	    String sessionId = json
-    	        .getAsJsonObject("data")
-    	        .getAsJsonObject("object")
-    	        .get("id")
-    	        .getAsString();
-
-    	    return Session.retrieve(sessionId);
-    	}
-
+        return Session.retrieve(sessionId);
+    }
 }
-
