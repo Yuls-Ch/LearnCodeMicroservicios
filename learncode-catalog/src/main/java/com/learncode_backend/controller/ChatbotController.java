@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 
 import com.learncode_backend.dto.ChatBot.ChatbotRequest;
 import com.learncode_backend.dto.ChatBot.ChatbotResponse;
-import com.learncode_backend.service.impl.ChatbotService;
+import com.learncode_backend.service.chatbot.ChatbotService;
 
 @RestController
 @RequestMapping("/api/chatbot")
@@ -25,12 +25,13 @@ public class ChatbotController {
     @PostMapping
     public Mono<ResponseEntity<ChatbotResponse>> chat(
             @RequestBody ChatbotRequest request,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader(value = "Authorization", required = false) String token) {
         
         System.out.println("Request recibido: " + request);
         System.out.println("Message: " + request.chatInput());
+        System.out.println("SessionId: " + request.sessionId());
         
-        return chatbotService.sendMessage(request.chatInput())
+        return chatbotService.sendMessage(request.chatInput(), request.sessionId())
                 .map(response -> {
         			return ResponseEntity.ok(response);
                 })

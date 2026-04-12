@@ -42,6 +42,7 @@ cloudinary:
   api-key: "449415717531214"
   api-secret: "_7AoYNN1ufdyI2KYE8jhZ85K67w"
 
+#X ahora en local
 n8n:
   webhook:
-    url: https://yulianachambi.app.n8n.cloud/webhook/ChatBot
+    url: ${URL_CHATBOT}
