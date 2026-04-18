@@ -101,6 +101,11 @@ spring:
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/api/client/content/**
+         
+        - id: client-progress
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/client/progress
 
         - id: courses-client
           uri: lb://CATALOG-SERVICE
