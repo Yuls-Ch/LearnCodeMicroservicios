@@ -72,6 +72,11 @@ spring:
           predicates:
             - Path=/api/payments/**
 
+        - id: payments
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/admin/statisticsSub/**
+
         # ✅ SOAP
         - id: soap-subscription
           uri: lb://SUBSCRIPTION-SERVICE
@@ -116,6 +121,11 @@ spring:
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/api/admin/upload/**
+
+        - id: admin-statitics
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/api/admin/statisticsCat/**
       
         # ======================== 
         # CHATBOT 
