@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.learncode_backend.dto.ClientCourseDTO;
+import com.learncode_backend.dto.CourseViewsDTO;
 import com.learncode_backend.model.Course;
 
 @Repository
@@ -60,4 +61,18 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 			+ "FROM Course c WHERE c.id = :id AND c.published = true")
 	ClientCourseDTO findPublishedByIdWithCounts(@Param("id") UUID id);
 
+	@Query("""
+		    SELECT new com.learncode_backend.dto.CourseViewsDTO(
+		        c.title,
+		        COUNT(DISTINCT sp.userId)
+		    )
+		    FROM Course c
+		    LEFT JOIN StudentProgress sp 
+		        ON sp.courseId = c.id
+		    WHERE c.published = true
+		    GROUP BY c.id, c.title
+		    ORDER BY COUNT(DISTINCT sp.userId) DESC
+		""")
+		List<CourseViewsDTO> findCoursesMostViewed();
+	
 }
